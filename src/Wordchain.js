@@ -18,7 +18,7 @@ const generateWordChain = () => {
 };
 
 const Wordchain = () => {
-  const [wordChain, setWordChain] = useState(generateWordChain());
+  const [wordChain] = useState(generateWordChain());
   const [board, setBoard] = useState([]);
   const [currentRow, setCurrentRow] = useState(1);
   const [currentCol, setCurrentCol] = useState(1);
@@ -28,12 +28,7 @@ const Wordchain = () => {
   const [gameEndTime, setGameEndTime] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
-  useEffect(() => {
-    initializeBoard();
-    setGameStartTime(Date.now());
-  }, []);
-
-  const initializeBoard = () => {
+  const initializeBoard = useCallback(() => {
     const newBoard = wordChain.map((word, rowIndex) => {
       return Array(10).fill().map((_, colIndex) => {
         if (colIndex === 0 || (rowIndex === 0 || rowIndex === 4)) {
@@ -43,41 +38,14 @@ const Wordchain = () => {
       });
     });
     setBoard(newBoard);
-  };
-
-  const handleKeyPress = useCallback((event) => {
-    if (event.key === 'Enter') {
-      checkWord();
-    } else if (event.key === 'Backspace') {
-      if (currentCol > 1) {
-        updateBoard(currentRow, currentCol - 1, '');
-        setCurrentCol(prev => prev - 1);
-      }
-    } else if (/^[a-zA-Z]$/.test(event.key)) {
-      if (currentCol < 10) {
-        updateBoard(currentRow, currentCol, event.key.toUpperCase());
-        setCurrentCol(prev => prev + 1);
-      }
-    }
-  }, [currentRow, currentCol]);
+  }, [wordChain]);
 
   useEffect(() => {
-    window.addEventListener('keydown', handleKeyPress);
-    return () => {
-      window.removeEventListener('keydown', handleKeyPress);
-    };
-  }, [handleKeyPress]);
+    initializeBoard();
+    setGameStartTime(Date.now());
+  }, [initializeBoard]);
 
-  const updateBoard = (row, col, letter) => {
-    setBoard(prevBoard => {
-      const newBoard = [...prevBoard];
-      newBoard[row] = [...newBoard[row]];
-      newBoard[row][col] = { letter, status: 'filled' };
-      return newBoard;
-    });
-  };
-
-  const checkWord = () => {
+  const checkWord = useCallback(() => {
     const enteredWord = board[currentRow].map(tile => tile.letter).join('').toLowerCase();
     if (enteredWord === wordChain[currentRow]) {
       setBoard(prevBoard => {
@@ -94,7 +62,7 @@ const Wordchain = () => {
         setGameEndTime(Date.now());
         setShowModal(true);
       }
-      setIncorrectAttempts(0); // Reset incorrect attempts after a correct word
+      setIncorrectAttempts(0);
     } else {
       setIncorrectAttempts(prev => prev + 1);
       setBoard(prevBoard => {
@@ -106,9 +74,42 @@ const Wordchain = () => {
       });
       setCurrentCol(1);
     }
-  };
+  }, [board, currentRow, wordChain, setCurrentRow, setCurrentCol, setIncorrectAttempts, setGameEndTime, setShowModal]);
 
-  const giveHint = () => {
+  const handleKeyPress = useCallback((event) => {
+    if (event.key === 'Enter') {
+      checkWord();
+    } else if (event.key === 'Backspace') {
+      if (currentCol > 1) {
+        setBoard(prevBoard => {
+          const newBoard = [...prevBoard];
+          newBoard[currentRow] = [...newBoard[currentRow]];
+          newBoard[currentRow][currentCol - 1] = { letter: '', status: 'empty' };
+          return newBoard;
+        });
+        setCurrentCol(prev => prev - 1);
+      }
+    } else if (/^[a-zA-Z]$/.test(event.key)) {
+      if (currentCol < 10) {
+        setBoard(prevBoard => {
+          const newBoard = [...prevBoard];
+          newBoard[currentRow] = [...newBoard[currentRow]];
+          newBoard[currentRow][currentCol] = { letter: event.key.toUpperCase(), status: 'filled' };
+          return newBoard;
+        });
+        setCurrentCol(prev => prev + 1);
+      }
+    }
+  }, [currentRow, currentCol, checkWord]);
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyPress);
+    return () => {
+      window.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [handleKeyPress]);
+
+  const giveHint = useCallback(() => {
     if (incorrectAttempts >= 3) {
       setBoard(prevBoard => {
         const newBoard = [...prevBoard];
@@ -123,15 +124,15 @@ const Wordchain = () => {
       setHintCount(prev => prev + 1);
       setIncorrectAttempts(0);
     }
-  };
+  }, [incorrectAttempts, currentRow, wordChain]);
 
-  const handleTileClick = (rowIndex, colIndex) => {
+  const handleTileClick = useCallback((rowIndex, colIndex) => {
     if (rowIndex === currentRow && colIndex >= 1 && colIndex <= 9) {
       setCurrentCol(colIndex);
     }
-  };
+  }, [currentRow]);
 
-  const shareResults = () => {
+  const shareResults = useCallback(() => {
     const timeTaken = Math.floor((gameEndTime - gameStartTime) / 1000);
     const message = `I solved today's Wordchain in ${timeTaken} seconds with ${hintCount} hints!`;
     if (navigator.share) {
@@ -142,7 +143,7 @@ const Wordchain = () => {
     } else {
       alert(message);
     }
-  };
+  }, [gameEndTime, gameStartTime, hintCount]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
