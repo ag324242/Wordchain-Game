@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/Wordchain/static/css/main.cdb3eade.css",
+    "main.js": "/Wordchain/static/js/main.8ac856f3.js",
+    "static/js/453.87c213d3.chunk.js": "/Wordchain/static/js/453.87c213d3.chunk.js",
+    "index.html": "/Wordchain/index.html",
+    "main.cdb3eade.css.map": "/Wordchain/static/css/main.cdb3eade.css.map",
+    "main.8ac856f3.js.map": "/Wordchain/static/js/main.8ac856f3.js.map",
+    "453.87c213d3.chunk.js.map": "/Wordchain/static/js/453.87c213d3.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.cdb3eade.css",
+    "static/js/main.8ac856f3.js"
+  ]
+}
