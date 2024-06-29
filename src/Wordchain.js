@@ -60,6 +60,7 @@ const Wordchain = () => {
 
   const checkWord = useCallback(() => {
     const enteredWord = board[currentRow].map(tile => tile.letter).join('').toLowerCase();
+    console.log('Checking word:', enteredWord, 'Correct word:', wordChain[currentRow]);
     if (enteredWord === wordChain[currentRow]) {
       setBoard(prevBoard => {
         const newBoard = [...prevBoard];
@@ -85,7 +86,9 @@ const Wordchain = () => {
     } else {
       setIncorrectAttempts(prev => prev + 1);
       setAttemptsAfterLastHint(prev => prev + 1);
-      if (attemptsAfterLastHint >= 4 && hintsPerRow[currentRow] >= 3) {
+      console.log('Incorrect attempt. Total:', incorrectAttempts + 1, 'After last hint:', attemptsAfterLastHint + 1);
+      if (attemptsAfterLastHint + 1 >= 5 && hintsPerRow[currentRow] >= 3) {
+        console.log('Triggering game over');
         revealWord();
       } else {
         setBoard(prevBoard => {
@@ -98,9 +101,10 @@ const Wordchain = () => {
         setCurrentCol(1);
       }
     }
-  }, [board, currentRow, wordChain, attemptsAfterLastHint, hintsPerRow]);
+  }, [board, currentRow, wordChain, attemptsAfterLastHint, hintsPerRow, incorrectAttempts]);
 
   const revealWord = useCallback(() => {
+    console.log('Revealing word');
     setBoard(prevBoard => {
       const newBoard = [...prevBoard];
       newBoard[currentRow] = newBoard[currentRow].map((tile, index) => ({
