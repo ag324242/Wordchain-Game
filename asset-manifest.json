@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/Wordchain-Game/static/css/main.b70757db.css",
-    "main.js": "/Wordchain-Game/static/js/main.26a4d5e4.js",
+    "main.js": "/Wordchain-Game/static/js/main.c93a9c52.js",
     "static/js/453.87c213d3.chunk.js": "/Wordchain-Game/static/js/453.87c213d3.chunk.js",
     "index.html": "/Wordchain-Game/index.html",
     "main.b70757db.css.map": "/Wordchain-Game/static/css/main.b70757db.css.map",
-    "main.26a4d5e4.js.map": "/Wordchain-Game/static/js/main.26a4d5e4.js.map",
+    "main.c93a9c52.js.map": "/Wordchain-Game/static/js/main.c93a9c52.js.map",
     "453.87c213d3.chunk.js.map": "/Wordchain-Game/static/js/453.87c213d3.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.b70757db.css",
-    "static/js/main.26a4d5e4.js"
+    "static/js/main.c93a9c52.js"
   ]
 }
