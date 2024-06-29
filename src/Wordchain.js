@@ -157,27 +157,29 @@ const Wordchain = () => {
         <h1 className="text-4xl font-bold mb-2">Wordchain</h1>
         <p className="text-sm">{new Date().toLocaleDateString()}</p>
       </div>
-      <div className="grid grid-cols-15 gap-1 mb-4 max-w-md w-full">
+      <div className="grid grid-cols-15 gap-1 mb-4 max-w-full w-full">
         {board.map((row, rowIndex) => (
-          row.map((tile, colIndex) => (
-            <input
-              key={`${rowIndex}-${colIndex}`}
-              type="text"
-              maxLength="1"
-              value={tile.letter}
-              readOnly={tile.status !== 'empty' && tile.status !== 'filled'}
-              className={`aspect-square flex items-center justify-center border-2 border-gray-300 text-xs sm:text-sm md:text-base font-bold text-center ${
-                tile.status === 'revealed' ? 'bg-blue-200' :
-                tile.status === 'correct' ? 'bg-green-300' :
-                tile.status === 'hint' ? 'bg-gray-300' :
-                tile.status === 'solid' ? 'bg-gray-500' :
-                'bg-white'
-              }`}
-              onChange={(e) => handleInputChange(rowIndex, colIndex, e.target.value)}
-              onKeyDown={(e) => handleKeyDown(e, rowIndex, colIndex)}
-              onFocus={() => handleFocus(rowIndex, colIndex)}
-            />
-          ))
+          <React.Fragment key={rowIndex}>
+            {row.map((tile, colIndex) => (
+              <input
+                key={`${rowIndex}-${colIndex}`}
+                type="text"
+                maxLength="1"
+                value={tile.letter}
+                readOnly={tile.status !== 'empty' && tile.status !== 'filled'}
+                className={`wordchain-input aspect-square flex items-center justify-center border-2 border-gray-300 text-center ${
+                  tile.status === 'revealed' ? 'bg-blue-200' :
+                  tile.status === 'correct' ? 'bg-green-300' :
+                  tile.status === 'hint' ? 'bg-gray-300' :
+                  tile.status === 'solid' ? 'bg-gray-500' :
+                  'bg-white'
+                }`}
+                onChange={(e) => handleInputChange(rowIndex, colIndex, e.target.value)}
+                onKeyDown={(e) => handleKeyDown(e, rowIndex, colIndex)}
+                onFocus={() => handleFocus(rowIndex, colIndex)}
+              />
+            ))}
+          </React.Fragment>
         ))}
       </div>
       <button

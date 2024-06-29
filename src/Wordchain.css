@@ -1,54 +1,31 @@
-.virtual-keyboard {
+.grid {
+  display: grid;
+  grid-template-columns: repeat(15, 1fr);
+  gap: 4px;
+}
+
+.wordchain-input {
   width: 100%;
-  max-width: 500px;
-  margin-top: 20px;
-}
-
-.keyboard-row {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 5px;
-}
-
-.keyboard-key {
-  min-width: 30px;
-  height: 40px;
-  margin: 0 2px;
-  border: 1px solid #ccc;
+  height: 0;
+  padding-bottom: 100%; /* This creates a square aspect ratio */
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  border: 2px solid #d1d5db;
   border-radius: 4px;
-  background-color: #f0f0f0;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-input[type="text"] {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
   outline: none;
-  caret-color: transparent;
 }
 
-input[type="text"]:focus {
-  outline: 2px solid #4a90e2;
+.wordchain-input:focus {
+  border-color: #3b82f6;
 }
 
 @media (max-width: 768px) {
   .grid {
-    gap: 0.25rem;
+    gap: 2px;
   }
   
-  input[type="text"] {
-    font-size: 0.7rem;
-    padding: 0;
-  }
-  
-  .keyboard-key {
-    min-width: 25px;
-    height: 35px;
+  .wordchain-input {
     font-size: 12px;
   }
 }
