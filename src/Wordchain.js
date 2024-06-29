@@ -113,10 +113,20 @@ const Wordchain = () => {
     if (incorrectAttempts >= 3) {
       setBoard(prevBoard => {
         const newBoard = [...prevBoard];
-        for (let i = 1; i < 10; i++) {
+        const currentWord = wordChain[currentRow];
+        const emptyTiles = newBoard[currentRow].filter((tile, index) => 
+          index > 0 && (tile.status === 'empty' || tile.status === 'filled')
+        );
+        const hintCount = Math.ceil(emptyTiles.length * 0.33); // 33% of remaining tiles
+        
+        let hintsGiven = 0;
+        for (let i = 1; i < 10 && hintsGiven < hintCount; i++) {
           if (newBoard[currentRow][i].status === 'empty' || newBoard[currentRow][i].status === 'filled') {
-            newBoard[currentRow][i] = { letter: wordChain[currentRow][i].toUpperCase(), status: 'hint' };
-            break;
+            newBoard[currentRow][i] = { 
+              letter: currentWord[i].toUpperCase(), 
+              status: 'hint' 
+            };
+            hintsGiven++;
           }
         }
         return newBoard;
