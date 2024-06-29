@@ -2,16 +2,16 @@ import React, { useState, useEffect, useCallback } from 'react';
 import './Wordchain.css';
 
 const wordChains = [
-  ["moon", "light", "bulb", "head", "start"],
-  ["book", "mark", "down", "town", "hall"],
-  ["sun", "shine", "bright", "idea", "list"],
-  ["rain", "coat", "rack", "time", "piece"],
-  ["fire", "place", "mat", "chair", "lift"],
-  ["snow", "ball", "game", "plan", "ahead"],
-  ["tree", "house", "work", "shop", "keeper"],
-  ["sea", "shore", "line", "dance", "floor"],
-  ["star", "light", "year", "book", "worm"],
-  ["wind", "mill", "stone", "age", "old"]
+  ["mountain", "climbing", "equipment", "rental", "service"],
+  ["butterfly", "migration", "pattern", "recognition", "software"],
+  ["telescope", "discovery", "channel", "surfing", "instructor"],
+  ["pineapple", "plantation", "management", "consultant", "meeting"],
+  ["sunflower", "seedling", "growth", "hormone", "treatment"],
+  ["rainforest", "ecosystem", "balance", "restoration", "project"],
+  ["submarine", "exploration", "documentary", "filmmaker", "award"],
+  ["skyscraper", "architecture", "design", "competition", "winner"],
+  ["chocolate", "fountain", "centerpiece", "arrangement", "service"],
+  ["hurricane", "preparedness", "planning", "committee", "meeting"]
 ];
 
 const generateWordChain = () => {
@@ -31,7 +31,7 @@ const Wordchain = () => {
 
   const initializeBoard = useCallback(() => {
     const newBoard = wordChain.map((word, rowIndex) => {
-      return Array(10).fill().map((_, colIndex) => {
+      return Array(15).fill().map((_, colIndex) => {
         if (colIndex === 0 || (rowIndex === 0 || rowIndex === 4)) {
           return { letter: word[colIndex], status: 'revealed' };
         }
@@ -86,34 +86,28 @@ const Wordchain = () => {
     }
   }, [board, currentRow, wordChain]);
 
-  const handleTouchTile = useCallback((rowIndex, colIndex) => {
-    if (rowIndex === currentRow && colIndex >= 1 && colIndex <= 9) {
-      setCurrentCol(colIndex);
+  const handleKeyPress = useCallback((event) => {
+    if (event.key === 'Enter') {
+      checkWord();
+    } else if (event.key === 'Backspace') {
+      if (currentCol > 1) {
+        updateBoard(currentRow, currentCol - 1, '');
+        setCurrentCol(prev => prev - 1);
+      }
+    } else if (/^[a-zA-Z]$/.test(event.key)) {
+      if (currentCol < 15) {
+        updateBoard(currentRow, currentCol, event.key.toUpperCase());
+        setCurrentCol(prev => prev + 1);
+      }
     }
-  }, [currentRow]);
+  }, [checkWord, currentRow, currentCol, updateBoard]);
 
   useEffect(() => {
-    const handleKeyPress = (event) => {
-      if (event.key === 'Enter') {
-        checkWord();
-      } else if (event.key === 'Backspace') {
-        if (currentCol > 1) {
-          updateBoard(currentRow, currentCol - 1, '');
-          setCurrentCol(prev => prev - 1);
-        }
-      } else if (/^[a-zA-Z]$/.test(event.key)) {
-        if (currentCol < 10) {
-          updateBoard(currentRow, currentCol, event.key.toUpperCase());
-          setCurrentCol(prev => prev + 1);
-        }
-      }
-    };
-
     window.addEventListener('keydown', handleKeyPress);
     return () => {
       window.removeEventListener('keydown', handleKeyPress);
     };
-  }, [checkWord, currentRow, currentCol, updateBoard]);
+  }, [handleKeyPress]);
 
   const giveHint = useCallback(() => {
     if (incorrectAttempts >= 3) {
@@ -126,7 +120,7 @@ const Wordchain = () => {
         const hintCount = Math.ceil(emptyTiles.length * 0.33); // 33% of remaining tiles
         
         let hintsGiven = 0;
-        for (let i = 1; i < 10 && hintsGiven < hintCount; i++) {
+        for (let i = 1; i < 15 && hintsGiven < hintCount; i++) {
           if (newBoard[currentRow][i].status === 'empty' || newBoard[currentRow][i].status === 'filled') {
             newBoard[currentRow][i] = { 
               letter: currentWord[i].toUpperCase(), 
@@ -141,6 +135,12 @@ const Wordchain = () => {
       setIncorrectAttempts(0);
     }
   }, [incorrectAttempts, currentRow, wordChain]);
+
+  const handleTouchTile = useCallback((rowIndex, colIndex) => {
+    if (rowIndex === currentRow && colIndex >= 1 && colIndex <= 14) {
+      setCurrentCol(colIndex);
+    }
+  }, [currentRow]);
 
   const shareResults = useCallback(() => {
     const timeTaken = Math.floor((gameEndTime - gameStartTime) / 1000);
@@ -170,7 +170,7 @@ const Wordchain = () => {
           updateBoard(currentRow, currentCol - 1, '');
           setCurrentCol(prev => prev - 1);
         }
-      } else if (currentCol < 10) {
+      } else if (currentCol < 15) {
         updateBoard(currentRow, currentCol, key);
         setCurrentCol(prev => prev + 1);
       }
@@ -201,12 +201,12 @@ const Wordchain = () => {
         <h1 className="text-4xl font-bold mb-2">Wordchain</h1>
         <p className="text-sm">{new Date().toLocaleDateString()}</p>
       </div>
-      <div className="grid grid-cols-10 gap-1 mb-4 max-w-md w-full">
+      <div className="grid grid-cols-15 gap-1 mb-4 max-w-md w-full">
         {board.map((row, rowIndex) => (
           row.map((tile, colIndex) => (
             <div
               key={`${rowIndex}-${colIndex}`}
-              className={`aspect-square flex items-center justify-center border-2 border-gray-300 text-xl font-bold cursor-pointer ${
+              className={`aspect-square flex items-center justify-center border-2 border-gray-300 text-xs sm:text-sm md:text-base font-bold cursor-pointer ${
                 tile.status === 'revealed' ? 'bg-blue-200' :
                 tile.status === 'correct' ? 'bg-green-300' :
                 tile.status === 'hint' ? 'bg-gray-300' :
