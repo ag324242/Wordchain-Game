@@ -86,28 +86,30 @@ const Wordchain = () => {
     }
   }, [board, currentRow, wordChain]);
 
-  const handleKeyPress = useCallback((event) => {
-    if (event.key === 'Enter') {
-      checkWord();
-    } else if (event.key === 'Backspace') {
-      if (currentCol > 1) {
-        updateBoard(currentRow, currentCol - 1, '');
-        setCurrentCol(prev => prev - 1);
-      }
-    } else if (/^[a-zA-Z]$/.test(event.key)) {
-      if (currentCol < 15) {
-        updateBoard(currentRow, currentCol, event.key.toUpperCase());
-        setCurrentCol(prev => prev + 1);
+  const handleInputChange = useCallback((rowIndex, colIndex, value) => {
+    if (rowIndex === currentRow && value.match(/^[a-zA-Z]$/)) {
+      updateBoard(rowIndex, colIndex, value.toUpperCase());
+      if (colIndex < 14) {
+        setCurrentCol(colIndex + 1);
       }
     }
-  }, [checkWord, currentRow, currentCol, updateBoard]);
+  }, [currentRow, updateBoard]);
 
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyPress);
-    return () => {
-      window.removeEventListener('keydown', handleKeyPress);
-    };
-  }, [handleKeyPress]);
+  const handleKeyDown = useCallback((e, rowIndex, colIndex) => {
+    if (e.key === 'Enter') {
+      checkWord();
+    } else if (e.key === 'Backspace' && colIndex > 0 && !e.target.value) {
+      e.preventDefault();
+      updateBoard(rowIndex, colIndex - 1, '');
+      setCurrentCol(colIndex - 1);
+    }
+  }, [checkWord, updateBoard]);
+
+  const handleFocus = useCallback((rowIndex, colIndex) => {
+    if (rowIndex === currentRow) {
+      setCurrentCol(colIndex);
+    }
+  }, [currentRow]);
 
   const giveHint = useCallback(() => {
     if (incorrectAttempts >= 3) {
@@ -136,12 +138,6 @@ const Wordchain = () => {
     }
   }, [incorrectAttempts, currentRow, wordChain]);
 
-  const handleTouchTile = useCallback((rowIndex, colIndex) => {
-    if (rowIndex === currentRow && colIndex >= 1 && colIndex <= 14) {
-      setCurrentCol(colIndex);
-    }
-  }, [currentRow]);
-
   const shareResults = useCallback(() => {
     const timeTaken = Math.floor((gameEndTime - gameStartTime) / 1000);
     const message = `I solved today's Wordchain in ${timeTaken} seconds with ${hintCount} hints!`;
@@ -155,46 +151,6 @@ const Wordchain = () => {
     }
   }, [gameEndTime, gameStartTime, hintCount]);
 
-  const VirtualKeyboard = () => {
-    const keys = [
-      'QWERTYUIOP'.split(''),
-      'ASDFGHJKL'.split(''),
-      ['Enter', ...'ZXCVBNM'.split(''), 'Backspace']
-    ];
-
-    const handleVirtualKeyPress = (key) => {
-      if (key === 'Enter') {
-        checkWord();
-      } else if (key === 'Backspace') {
-        if (currentCol > 1) {
-          updateBoard(currentRow, currentCol - 1, '');
-          setCurrentCol(prev => prev - 1);
-        }
-      } else if (currentCol < 15) {
-        updateBoard(currentRow, currentCol, key);
-        setCurrentCol(prev => prev + 1);
-      }
-    };
-
-    return (
-      <div className="virtual-keyboard">
-        {keys.map((row, rowIndex) => (
-          <div key={rowIndex} className="keyboard-row">
-            {row.map((key) => (
-              <button
-                key={key}
-                onClick={() => handleVirtualKeyPress(key)}
-                className="keyboard-key"
-              >
-                {key === 'Backspace' ? '←' : key}
-              </button>
-            ))}
-          </div>
-        ))}
-      </div>
-    );
-  };
-
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
       <div className="mb-8 text-center">
@@ -204,23 +160,26 @@ const Wordchain = () => {
       <div className="grid grid-cols-15 gap-1 mb-4 max-w-md w-full">
         {board.map((row, rowIndex) => (
           row.map((tile, colIndex) => (
-            <div
+            <input
               key={`${rowIndex}-${colIndex}`}
-              className={`aspect-square flex items-center justify-center border-2 border-gray-300 text-xs sm:text-sm md:text-base font-bold cursor-pointer ${
+              type="text"
+              maxLength="1"
+              value={tile.letter}
+              readOnly={tile.status !== 'empty' && tile.status !== 'filled'}
+              className={`aspect-square flex items-center justify-center border-2 border-gray-300 text-xs sm:text-sm md:text-base font-bold text-center ${
                 tile.status === 'revealed' ? 'bg-blue-200' :
                 tile.status === 'correct' ? 'bg-green-300' :
                 tile.status === 'hint' ? 'bg-gray-300' :
                 tile.status === 'solid' ? 'bg-gray-500' :
                 'bg-white'
               }`}
-              onClick={() => handleTouchTile(rowIndex, colIndex)}
-            >
-              {tile.letter}
-            </div>
+              onChange={(e) => handleInputChange(rowIndex, colIndex, e.target.value)}
+              onKeyDown={(e) => handleKeyDown(e, rowIndex, colIndex)}
+              onFocus={() => handleFocus(rowIndex, colIndex)}
+            />
           ))
         ))}
       </div>
-      <VirtualKeyboard />
       <button
         onClick={giveHint}
         disabled={incorrectAttempts < 3}

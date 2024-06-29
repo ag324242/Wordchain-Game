@@ -1,41 +1,54 @@
 .virtual-keyboard {
-    width: 100%;
-    max-width: 500px;
-    margin-top: 20px;
+  width: 100%;
+  max-width: 500px;
+  margin-top: 20px;
+}
+
+.keyboard-row {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 5px;
+}
+
+.keyboard-key {
+  min-width: 30px;
+  height: 40px;
+  margin: 0 2px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #f0f0f0;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+input[type="text"] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  outline: none;
+  caret-color: transparent;
+}
+
+input[type="text"]:focus {
+  outline: 2px solid #4a90e2;
+}
+
+@media (max-width: 768px) {
+  .grid {
+    gap: 0.25rem;
   }
   
-  .keyboard-row {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 5px;
+  input[type="text"] {
+    font-size: 0.7rem;
+    padding: 0;
   }
   
   .keyboard-key {
-    min-width: 30px;
-    height: 40px;
-    margin: 0 2px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    background-color: #f0f0f0;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
+    min-width: 25px;
+    height: 35px;
+    font-size: 12px;
   }
-  
-  @media (max-width: 768px) {
-    .grid {
-      gap: 0.25rem;
-    }
-    
-    .aspect-square {
-      font-size: 0.6rem;
-    }
-    
-    .keyboard-key {
-      min-width: 20px;
-      height: 30px;
-      font-size: 10px;
-    }
-  }
+}
