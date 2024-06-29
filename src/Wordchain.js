@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import './Wordchain.css';
 
 const wordChains = [
   ["moon", "light", "bulb", "head", "start"],
@@ -45,6 +46,15 @@ const Wordchain = () => {
     setGameStartTime(Date.now());
   }, [initializeBoard]);
 
+  const updateBoard = useCallback((row, col, letter) => {
+    setBoard(prevBoard => {
+      const newBoard = [...prevBoard];
+      newBoard[row] = [...newBoard[row]];
+      newBoard[row][col] = { letter, status: 'filled' };
+      return newBoard;
+    });
+  }, []);
+
   const checkWord = useCallback(() => {
     const enteredWord = board[currentRow].map(tile => tile.letter).join('').toLowerCase();
     if (enteredWord === wordChain[currentRow]) {
@@ -74,40 +84,36 @@ const Wordchain = () => {
       });
       setCurrentCol(1);
     }
-  }, [board, currentRow, wordChain, setCurrentRow, setCurrentCol, setIncorrectAttempts, setGameEndTime, setShowModal]);
+  }, [board, currentRow, wordChain]);
 
-  const handleKeyPress = useCallback((event) => {
-    if (event.key === 'Enter') {
-      checkWord();
-    } else if (event.key === 'Backspace') {
-      if (currentCol > 1) {
-        setBoard(prevBoard => {
-          const newBoard = [...prevBoard];
-          newBoard[currentRow] = [...newBoard[currentRow]];
-          newBoard[currentRow][currentCol - 1] = { letter: '', status: 'empty' };
-          return newBoard;
-        });
-        setCurrentCol(prev => prev - 1);
-      }
-    } else if (/^[a-zA-Z]$/.test(event.key)) {
-      if (currentCol < 10) {
-        setBoard(prevBoard => {
-          const newBoard = [...prevBoard];
-          newBoard[currentRow] = [...newBoard[currentRow]];
-          newBoard[currentRow][currentCol] = { letter: event.key.toUpperCase(), status: 'filled' };
-          return newBoard;
-        });
-        setCurrentCol(prev => prev + 1);
-      }
+  const handleTouchTile = useCallback((rowIndex, colIndex) => {
+    if (rowIndex === currentRow && colIndex >= 1 && colIndex <= 9) {
+      setCurrentCol(colIndex);
     }
-  }, [currentRow, currentCol, checkWord]);
+  }, [currentRow]);
 
   useEffect(() => {
+    const handleKeyPress = (event) => {
+      if (event.key === 'Enter') {
+        checkWord();
+      } else if (event.key === 'Backspace') {
+        if (currentCol > 1) {
+          updateBoard(currentRow, currentCol - 1, '');
+          setCurrentCol(prev => prev - 1);
+        }
+      } else if (/^[a-zA-Z]$/.test(event.key)) {
+        if (currentCol < 10) {
+          updateBoard(currentRow, currentCol, event.key.toUpperCase());
+          setCurrentCol(prev => prev + 1);
+        }
+      }
+    };
+
     window.addEventListener('keydown', handleKeyPress);
     return () => {
       window.removeEventListener('keydown', handleKeyPress);
     };
-  }, [handleKeyPress]);
+  }, [checkWord, currentRow, currentCol, updateBoard]);
 
   const giveHint = useCallback(() => {
     if (incorrectAttempts >= 3) {
@@ -136,12 +142,6 @@ const Wordchain = () => {
     }
   }, [incorrectAttempts, currentRow, wordChain]);
 
-  const handleTileClick = useCallback((rowIndex, colIndex) => {
-    if (rowIndex === currentRow && colIndex >= 1 && colIndex <= 9) {
-      setCurrentCol(colIndex);
-    }
-  }, [currentRow]);
-
   const shareResults = useCallback(() => {
     const timeTaken = Math.floor((gameEndTime - gameStartTime) / 1000);
     const message = `I solved today's Wordchain in ${timeTaken} seconds with ${hintCount} hints!`;
@@ -154,6 +154,46 @@ const Wordchain = () => {
       alert(message);
     }
   }, [gameEndTime, gameStartTime, hintCount]);
+
+  const VirtualKeyboard = () => {
+    const keys = [
+      'QWERTYUIOP'.split(''),
+      'ASDFGHJKL'.split(''),
+      ['Enter', ...'ZXCVBNM'.split(''), 'Backspace']
+    ];
+
+    const handleVirtualKeyPress = (key) => {
+      if (key === 'Enter') {
+        checkWord();
+      } else if (key === 'Backspace') {
+        if (currentCol > 1) {
+          updateBoard(currentRow, currentCol - 1, '');
+          setCurrentCol(prev => prev - 1);
+        }
+      } else if (currentCol < 10) {
+        updateBoard(currentRow, currentCol, key);
+        setCurrentCol(prev => prev + 1);
+      }
+    };
+
+    return (
+      <div className="virtual-keyboard">
+        {keys.map((row, rowIndex) => (
+          <div key={rowIndex} className="keyboard-row">
+            {row.map((key) => (
+              <button
+                key={key}
+                onClick={() => handleVirtualKeyPress(key)}
+                className="keyboard-key"
+              >
+                {key === 'Backspace' ? '←' : key}
+              </button>
+            ))}
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
@@ -173,13 +213,14 @@ const Wordchain = () => {
                 tile.status === 'solid' ? 'bg-gray-500' :
                 'bg-white'
               }`}
-              onClick={() => handleTileClick(rowIndex, colIndex)}
+              onClick={() => handleTouchTile(rowIndex, colIndex)}
             >
               {tile.letter}
             </div>
           ))
         ))}
       </div>
+      <VirtualKeyboard />
       <button
         onClick={giveHint}
         disabled={incorrectAttempts < 3}

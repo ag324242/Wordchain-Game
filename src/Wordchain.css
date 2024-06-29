@@ -1,0 +1,41 @@
+.virtual-keyboard {
+    width: 100%;
+    max-width: 500px;
+    margin-top: 20px;
+  }
+  
+  .keyboard-row {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 5px;
+  }
+  
+  .keyboard-key {
+    min-width: 30px;
+    height: 40px;
+    margin: 0 2px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f0f0f0;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  
+  @media (max-width: 768px) {
+    .grid {
+      gap: 0.5rem;
+    }
+    
+    .aspect-square {
+      font-size: 1rem;
+    }
+    
+    .keyboard-key {
+      min-width: 25px;
+      height: 35px;
+      font-size: 12px;
+    }
+  }
