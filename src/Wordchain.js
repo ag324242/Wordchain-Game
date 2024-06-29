@@ -162,22 +162,22 @@ const Wordchain = () => {
           <React.Fragment key={rowIndex}>
             {row.map((tile, colIndex) => (
               <input
-                key={`${rowIndex}-${colIndex}`}
-                type="text"
-                maxLength="1"
-                value={tile.letter}
-                readOnly={tile.status !== 'empty' && tile.status !== 'filled'}
-                className={`wordchain-input aspect-square flex items-center justify-center border-2 border-gray-300 text-center ${
-                  tile.status === 'revealed' ? 'bg-blue-200' :
-                  tile.status === 'correct' ? 'bg-green-300' :
-                  tile.status === 'hint' ? 'bg-gray-300' :
-                  tile.status === 'solid' ? 'bg-gray-500' :
-                  'bg-white'
-                }`}
-                onChange={(e) => handleInputChange(rowIndex, colIndex, e.target.value)}
-                onKeyDown={(e) => handleKeyDown(e, rowIndex, colIndex)}
-                onFocus={() => handleFocus(rowIndex, colIndex)}
-              />
+  key={`${rowIndex}-${colIndex}`}
+  type="text"
+  maxLength="1"
+  value={tile.letter}
+  readOnly={tile.status !== 'empty' && tile.status !== 'filled'}
+  className={`wordchain-input ${
+    tile.status === 'revealed' ? 'bg-blue-200' :
+    tile.status === 'correct' ? 'bg-green-300' :
+    tile.status === 'hint' ? 'bg-gray-300' :
+    tile.status === 'solid' ? 'bg-gray-500' :
+    'bg-white'
+  }`}
+  onChange={(e) => handleInputChange(rowIndex, colIndex, e.target.value)}
+  onKeyDown={(e) => handleKeyDown(e, rowIndex, colIndex)}
+  onFocus={() => handleFocus(rowIndex, colIndex)}
+/>
             ))}
           </React.Fragment>
         ))}
