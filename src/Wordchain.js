@@ -35,7 +35,7 @@ const Wordchain = () => {
   const initializeBoard = useCallback(() => {
     const newBoard = wordChain.map((word, rowIndex) => {
       return Array(15).fill().map((_, colIndex) => {
-        if (colIndex === 0 || (rowIndex === 0 || rowIndex === 4)) {
+        if (colIndex === 0 || (rowIndex === 0 || rowIndex === wordChain.length - 1)) {
           return { letter: word[colIndex], status: 'revealed' };
         }
         return { letter: '', status: 'empty' };
@@ -69,7 +69,7 @@ const Wordchain = () => {
         );
         return newBoard;
       });
-      if (currentRow < 4) {
+      if (currentRow < wordChain.length - 1) {
         setCurrentRow(prev => prev + 1);
         setCurrentCol(1);
         setIncorrectAttempts(0);
@@ -107,10 +107,13 @@ const Wordchain = () => {
     console.log('Revealing word');
     setBoard(prevBoard => {
       const newBoard = [...prevBoard];
-      newBoard[currentRow] = newBoard[currentRow].map((tile, index) => ({
-        letter: wordChain[currentRow][index].toUpperCase(),
-        status: 'incorrect'
-      }));
+      newBoard[currentRow] = newBoard[currentRow].map((tile, index) => {
+        const letter = wordChain[currentRow] && wordChain[currentRow][index];
+        return {
+          letter: letter ? letter.toUpperCase() : '',
+          status: 'incorrect'
+        };
+      });
       return newBoard;
     });
     setGameOver(true);
