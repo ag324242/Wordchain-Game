@@ -81,7 +81,7 @@ const Wordchain = () => {
         });
       } else {
         setGameEndTime(Date.now());
-        setShowModal(true);
+        setTimeout(() => setShowModal(true), 10000);  // Delay modal by 10 seconds
       }
     } else {
       setIncorrectAttempts(prev => prev + 1);
@@ -117,7 +117,7 @@ const Wordchain = () => {
       return newBoard;
     });
     setGameOver(true);
-    setShowModal(true);
+    setTimeout(() => setShowModal(true), 10000);  // Delay modal by 10 seconds
   }, [currentRow, wordChain]);
 
   const giveHint = useCallback(() => {
