@@ -91,6 +91,11 @@ const Wordchain = () => {
       updateBoard(rowIndex, colIndex, value.toUpperCase());
       if (colIndex < 14) {
         setCurrentCol(colIndex + 1);
+        // Focus the next input
+        const nextInput = document.querySelector(`input[data-row="${rowIndex}"][data-col="${colIndex + 1}"]`);
+        if (nextInput) {
+          nextInput.focus();
+        }
       }
     }
   }, [currentRow, updateBoard]);
@@ -102,6 +107,11 @@ const Wordchain = () => {
       e.preventDefault();
       updateBoard(rowIndex, colIndex - 1, '');
       setCurrentCol(colIndex - 1);
+      // Focus the previous input
+      const prevInput = document.querySelector(`input[data-row="${rowIndex}"][data-col="${colIndex - 1}"]`);
+      if (prevInput) {
+        prevInput.focus();
+      }
     }
   }, [checkWord, updateBoard]);
 
@@ -162,22 +172,24 @@ const Wordchain = () => {
           <React.Fragment key={rowIndex}>
             {row.map((tile, colIndex) => (
               <input
-  key={`${rowIndex}-${colIndex}`}
-  type="text"
-  maxLength="1"
-  value={tile.letter}
-  readOnly={tile.status !== 'empty' && tile.status !== 'filled'}
-  className={`wordchain-input ${
-    tile.status === 'revealed' ? 'bg-blue-200' :
-    tile.status === 'correct' ? 'bg-green-300' :
-    tile.status === 'hint' ? 'bg-gray-300' :
-    tile.status === 'solid' ? 'bg-gray-500' :
-    'bg-white'
-  }`}
-  onChange={(e) => handleInputChange(rowIndex, colIndex, e.target.value)}
-  onKeyDown={(e) => handleKeyDown(e, rowIndex, colIndex)}
-  onFocus={() => handleFocus(rowIndex, colIndex)}
-/>
+                key={`${rowIndex}-${colIndex}`}
+                type="text"
+                maxLength="1"
+                value={tile.letter}
+                readOnly={tile.status !== 'empty' && tile.status !== 'filled'}
+                className={`wordchain-input ${
+                  tile.status === 'revealed' ? 'bg-blue-200' :
+                  tile.status === 'correct' ? 'bg-green-300' :
+                  tile.status === 'hint' ? 'bg-gray-300' :
+                  tile.status === 'solid' ? 'bg-gray-500' :
+                  'bg-white'
+                }`}
+                onChange={(e) => handleInputChange(rowIndex, colIndex, e.target.value)}
+                onKeyDown={(e) => handleKeyDown(e, rowIndex, colIndex)}
+                onFocus={() => handleFocus(rowIndex, colIndex)}
+                data-row={rowIndex}
+                data-col={colIndex}
+              />
             ))}
           </React.Fragment>
         ))}
