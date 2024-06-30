@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import './Wordchain.css';
 
 const wordChains = [
@@ -31,6 +32,8 @@ const Wordchain = () => {
   const [gameEndTime, setGameEndTime] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [gameOver, setGameOver] = useState(false);
+  const [playerName, setPlayerName] = useState('');
+  const [showNameInput, setShowNameInput] = useState(false);
 
   const initializeBoard = useCallback(() => {
     const newBoard = wordChain.map((word, rowIndex) => {
@@ -81,7 +84,7 @@ const Wordchain = () => {
         });
       } else {
         setGameEndTime(Date.now());
-        setTimeout(() => setShowModal(true), 10000);  // Delay modal by 10 seconds
+        setTimeout(() => setShowModal(true), 10000);
       }
     } else {
       setIncorrectAttempts(prev => prev + 1);
@@ -117,7 +120,7 @@ const Wordchain = () => {
       return newBoard;
     });
     setGameOver(true);
-    setTimeout(() => setShowModal(true), 10000);  // Delay modal by 10 seconds
+    setTimeout(() => setShowModal(true), 10000);
   }, [currentRow, wordChain]);
 
   const giveHint = useCallback(() => {
@@ -215,12 +218,31 @@ const Wordchain = () => {
     initializeBoard();
   }, [initializeBoard]);
 
+  const addToRankings = useCallback(() => {
+    setShowNameInput(true);
+  }, []);
+
+  const submitRanking = useCallback(() => {
+    if (playerName) {
+      const rankings = JSON.parse(localStorage.getItem('wordchainRankings') || '[]');
+      rankings.push({
+        name: playerName,
+        time: Math.floor((gameEndTime - gameStartTime) / 1000),
+        hints: hintCount
+      });
+      localStorage.setItem('wordchainRankings', JSON.stringify(rankings));
+      setShowNameInput(false);
+      setShowModal(false);
+    }
+  }, [playerName, gameEndTime, gameStartTime, hintCount]);
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
       <div className="mb-8 text-center">
         <h1 className="text-4xl font-bold mb-2">Wordchain</h1>
         <p className="text-sm">{new Date().toLocaleDateString()}</p>
       </div>
+      <Link to="/rankings" className="absolute top-4 right-4 text-blue-500 hover:text-blue-700">Rankings</Link>
       <div className="grid grid-cols-15 gap-1 mb-4 max-w-full w-full">
         {board.map((row, rowIndex) => (
           <React.Fragment key={rowIndex}>
@@ -267,30 +289,64 @@ const Wordchain = () => {
                 <p className="text-lg">You solved the Wordchain in {Math.floor((gameEndTime - gameStartTime) / 1000)} seconds</p>
                 <p className="text-lg">You used {hintCount} hints</p>
                 <button
+                  onClick={addToRankings}
+                  className="mt-4 bg-green-500 text-white px-6 py-2 rounded-full text-lg font-semibold mr-2"
+                >
+                  Add your name to the rankings
+                </button>
+                <button
                   onClick={() => {
                     shareResults();
                     setShowModal(false);
                   }}
-                  className="mt-4 bg-black text-white px-6 py-2 rounded-full text-lg font-semibold"
+                  className="mt-4 bg-black text-white px-6 py-2 rounded-full text-lg font-semibold mr-2"
                 >
                   Share Your Results
+                </button>
+                <button
+                  onClick={startNewGame}
+                  className="mt-4 bg-blue-500 text-white px-6 py-2 rounded-full text-lg font-semibold"
+                >
+                  Start New Game
                 </button>
               </>
             )}
             {gameOver && (
-              <p className="text-lg">You didn't guess the word. Would you like to try again?</p>
+              <>
+                <p className="text-lg">You didn't guess the word. Would you like to try again?</p>
+                <button
+                  onClick={startNewGame}
+                  className="mt-4 bg-blue-500 text-white px-6 py-2 rounded-full text-lg font-semibold"
+                >
+                  Start New Game
+                </button>
+              </>
             )}
-            <button
-              onClick={startNewGame}
-              className="mt-4 bg-blue-500 text-white px-6 py-2 rounded-full text-lg font-semibold"
-            >
-              Start New Game
-            </button>
           </div>
         </div>
       )}
-    </div>
-  );
-};
-
-export default Wordchain;
+      {showNameInput && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg">
+            <h2 className="text-2xl font-bold mb-4">Enter Your Name</h2>
+            <input
+              type="text"
+              value={playerName}
+              onChange={(e) => setPlayerName(e.target.value)}
+              className="border-2 border-gray-300 rounded-lg px-4 py-2 w-full mb-4"
+              placeholder="Your Name"
+            />
+            <button
+                onClick={submitRanking}
+                className="bg-green-500 text-white px-6 py-2 rounded-full text-lg font-semibold"
+              >
+                Submit
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+  
+  export default Wordchain;
