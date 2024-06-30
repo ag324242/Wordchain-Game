@@ -84,13 +84,13 @@ const Wordchain = () => {
         });
       } else {
         setGameEndTime(Date.now());
-        setTimeout(() => setShowModal(true), 10000);
+        setTimeout(() => setShowModal(true), 2000);  // Show modal 2 seconds after winning
       }
     } else {
       setIncorrectAttempts(prev => prev + 1);
       setAttemptsAfterLastHint(prev => prev + 1);
       console.log('Incorrect attempt. Total:', incorrectAttempts + 1, 'After last hint:', attemptsAfterLastHint + 1);
-      if (attemptsAfterLastHint + 1 >= 5 && hintsPerRow[currentRow] >= 3) {
+      if (hintsPerRow[currentRow] >= 3) {
         console.log('Triggering game over');
         revealWord();
       } else {
@@ -120,7 +120,7 @@ const Wordchain = () => {
       return newBoard;
     });
     setGameOver(true);
-    setTimeout(() => setShowModal(true), 10000);
+    setTimeout(() => setShowModal(true), 2000);  // Show modal 2 seconds after losing
   }, [currentRow, wordChain]);
 
   const giveHint = useCallback(() => {
@@ -282,41 +282,43 @@ const Wordchain = () => {
       </button>
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg">
-            <h2 className="text-2xl font-bold mb-4">{gameOver ? "Game Over" : "Amazing!"}</h2>
+          <div className="bg-white p-8 rounded-lg max-w-md w-full">
+            <h2 className="text-3xl font-bold mb-6 text-center">{gameOver ? "Game Over" : "Amazing!"}</h2>
             {!gameOver && (
               <>
-                <p className="text-lg">You solved the Wordchain in {Math.floor((gameEndTime - gameStartTime) / 1000)} seconds</p>
-                <p className="text-lg">You used {hintCount} hints</p>
-                <button
-                  onClick={addToRankings}
-                  className="mt-4 bg-green-500 text-white px-6 py-2 rounded-full text-lg font-semibold mr-2"
-                >
-                  Add your name to the rankings
-                </button>
-                <button
-                  onClick={() => {
-                    shareResults();
-                    setShowModal(false);
-                  }}
-                  className="mt-4 bg-black text-white px-6 py-2 rounded-full text-lg font-semibold mr-2"
-                >
-                  Share Your Results
-                </button>
-                <button
-                  onClick={startNewGame}
-                  className="mt-4 bg-blue-500 text-white px-6 py-2 rounded-full text-lg font-semibold"
-                >
-                  Start New Game
-                </button>
+                <p className="text-xl mb-4 text-center">You solved the Wordchain in {Math.floor((gameEndTime - gameStartTime) / 1000)} seconds</p>
+                <p className="text-xl mb-6 text-center">You used {hintCount} hints</p>
+                <div className="flex flex-col space-y-4">
+                  <button
+                    onClick={addToRankings}
+                    className="bg-green-500 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-green-600 transition duration-300"
+                  >
+                    Add your name to the rankings
+                  </button>
+                  <button
+                    onClick={() => {
+                      shareResults();
+                      setShowModal(false);
+                    }}
+                    className="bg-black text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-gray-800 transition duration-300"
+                  >
+                    Share Your Results With Your Favorite Person
+                  </button>
+                  <button
+                    onClick={startNewGame}
+                    className="bg-blue-500 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-blue-600 transition duration-300"
+                  >
+                    Start New Game
+                  </button>
+                </div>
               </>
             )}
             {gameOver && (
               <>
-                <p className="text-lg">You didn't guess the word. Would you like to try again?</p>
+                <p className="text-xl mb-6 text-center">You didn't guess the word. Would you like to try again?</p>
                 <button
                   onClick={startNewGame}
-                  className="mt-4 bg-blue-500 text-white px-6 py-2 rounded-full text-lg font-semibold"
+                  className="w-full bg-blue-500 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-blue-600 transition duration-300"
                 >
                   Start New Game
                 </button>
@@ -327,26 +329,26 @@ const Wordchain = () => {
       )}
       {showNameInput && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg">
-            <h2 className="text-2xl font-bold mb-4">Enter Your Name</h2>
+          <div className="bg-white p-8 rounded-lg max-w-md w-full">
+            <h2 className="text-2xl font-bold mb-4 text-center">Enter Your Name</h2>
             <input
               type="text"
               value={playerName}
               onChange={(e) => setPlayerName(e.target.value)}
-              className="border-2 border-gray-300 rounded-lg px-4 py-2 w-full mb-4"
+              className="border-2 border-gray-300 rounded-lg px-4 py-2 w-full mb-4 text-lg"
               placeholder="Your Name"
             />
             <button
-                onClick={submitRanking}
-                className="bg-green-500 text-white px-6 py-2 rounded-full text-lg font-semibold"
-              >
-                Submit
-              </button>
-            </div>
+              onClick={submitRanking}
+              className="w-full bg-green-500 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-green-600 transition duration-300"
+            >
+              Submit
+            </button>
           </div>
-        )}
-      </div>
-    );
-  };
-  
-  export default Wordchain;
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Wordchain;
