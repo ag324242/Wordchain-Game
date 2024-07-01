@@ -12,7 +12,27 @@ const wordChains = [
   ["submarine", "exploration", "documentary", "filmmaker", "award"],
   ["skyscraper", "architecture", "design", "competition", "winner"],
   ["chocolate", "fountain", "centerpiece", "arrangement", "service"],
-  ["hurricane", "preparedness", "planning", "committee", "meeting"]
+  ["hurricane", "preparedness", "planning", "committee", "meeting"],
+  ["bookstore", "inventory", "system", "update", "required"],
+  ["waterfall", "hiking", "trail", "guide", "needed"],
+  ["spaceship", "launch", "countdown", "mission", "control"],
+  ["vineyard", "harvest", "season", "celebration", "event"],
+  ["lighthouse", "keeper", "journal", "entry", "discovered"],
+  ["volcano", "eruption", "prediction", "model", "developed"],
+  ["orchestra", "conductor", "audition", "performance", "scheduled"],
+  ["laboratory", "experiment", "results", "analysis", "published"],
+  ["aquarium", "tropical", "fish", "exhibit", "opened"],
+  ["airport", "security", "checkpoint", "procedure", "updated"],
+  ["garden", "butterfly", "sanctuary", "visitor", "center"],
+  ["library", "digital", "archive", "project", "launched"],
+  ["museum", "ancient", "artifact", "restoration", "completed"],
+  ["festival", "cultural", "exchange", "program", "announced"],
+  ["hospital", "emergency", "response", "team", "trained"],
+  ["university", "research", "grant", "application", "deadline"],
+  ["restaurant", "menu", "tasting", "event", "scheduled"],
+  ["theater", "backstage", "tour", "tickets", "available"],
+  ["fitness", "personal", "trainer", "certification", "course"],
+  ["wildlife", "conservation", "fundraising", "campaign", "started"]
 ];
 
 const generateWordChain = () => {
