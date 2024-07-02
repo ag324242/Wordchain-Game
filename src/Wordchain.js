@@ -83,8 +83,10 @@ const Wordchain = () => {
 
   const checkWord = useCallback(() => {
     const enteredWord = board[currentRow].map(tile => tile.letter).join('').toLowerCase();
-    console.log('Checking word:', enteredWord, 'Correct word:', wordChain[currentRow]);
-    if (enteredWord === wordChain[currentRow]) {
+    const correctWord = wordChain[currentRow];
+    console.log('Checking word:', enteredWord, 'Correct word:', correctWord);
+    if (enteredWord === correctWord) {
+      console.log('Word is correct');
       setBoard(prevBoard => {
         const newBoard = [...prevBoard];
         newBoard[currentRow] = newBoard[currentRow].map((tile, index) => 
@@ -107,6 +109,7 @@ const Wordchain = () => {
         setTimeout(() => setShowModal(true), 2000);  // Show modal 2 seconds after winning
       }
     } else {
+      console.log('Word is incorrect');
       setIncorrectAttempts(prev => prev + 1);
       setAttemptsAfterLastHint(prev => prev + 1);
       console.log('Incorrect attempt. Total:', incorrectAttempts + 1, 'After last hint:', attemptsAfterLastHint + 1);
@@ -124,7 +127,7 @@ const Wordchain = () => {
         setCurrentCol(1);
       }
     }
-  }, [board, currentRow, wordChain, attemptsAfterLastHint, hintsPerRow, incorrectAttempts]);
+  }, [board, currentRow, wordChain, attemptsAfterLastHint, hintsPerRow, incorrectAttempts, revealWord]);
 
   const revealWord = useCallback(() => {
     console.log('Revealing word');
