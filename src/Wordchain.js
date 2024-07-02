@@ -83,10 +83,8 @@ const Wordchain = () => {
 
   const checkWord = useCallback(() => {
     const enteredWord = board[currentRow].map(tile => tile.letter).join('').toLowerCase();
-    const correctWord = wordChain[currentRow];
-    console.log('Checking word:', enteredWord, 'Correct word:', correctWord);
-    if (enteredWord === correctWord) {
-      console.log('Word is correct');
+    console.log('Checking word:', enteredWord, 'Correct word:', wordChain[currentRow]);
+    if (enteredWord === wordChain[currentRow]) {
       setBoard(prevBoard => {
         const newBoard = [...prevBoard];
         newBoard[currentRow] = newBoard[currentRow].map((tile, index) => 
@@ -109,7 +107,6 @@ const Wordchain = () => {
         setTimeout(() => setShowModal(true), 2000);  // Show modal 2 seconds after winning
       }
     } else {
-      console.log('Word is incorrect');
       setIncorrectAttempts(prev => prev + 1);
       setAttemptsAfterLastHint(prev => prev + 1);
       console.log('Incorrect attempt. Total:', incorrectAttempts + 1, 'After last hint:', attemptsAfterLastHint + 1);
@@ -127,7 +124,7 @@ const Wordchain = () => {
         setCurrentCol(1);
       }
     }
-  }, [board, currentRow, wordChain, attemptsAfterLastHint, hintsPerRow, incorrectAttempts, revealWord]);
+  }, [board, currentRow, wordChain, attemptsAfterLastHint, hintsPerRow, incorrectAttempts]);
 
   const revealWord = useCallback(() => {
     console.log('Revealing word');
@@ -324,54 +321,54 @@ const Wordchain = () => {
                       setShowModal(false);
                     }}
                     className="bg-black text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-gray-800 transition duration-300"
-                  >
-                    Share Your Results With Your Favorite Person
-                  </button>
+                    >
+                      Share Your Results With Your Favorite Person
+                    </button>
+                    <button
+                      onClick={startNewGame}
+                      className="bg-blue-500 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-blue-600 transition duration-300"
+                    >
+                      Start New Game
+                    </button>
+                  </div>
+                </>
+              )}
+              {gameOver && (
+                <>
+                  <p className="text-xl mb-6 text-center">You didn't guess the word. Would you like to try again?</p>
                   <button
                     onClick={startNewGame}
-                    className="bg-blue-500 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-blue-600 transition duration-300"
+                    className="w-full bg-blue-500 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-blue-600 transition duration-300"
                   >
                     Start New Game
                   </button>
-                </div>
-              </>
-            )}
-            {gameOver && (
-              <>
-                <p className="text-xl mb-6 text-center">You didn't guess the word. Would you like to try again?</p>
-                <button
-                  onClick={startNewGame}
-                  className="w-full bg-blue-500 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-blue-600 transition duration-300"
-                >
-                  Start New Game
-                </button>
-              </>
-            )}
+                </>
+              )}
+            </div>
           </div>
-        </div>
-      )}
-      {showNameInput && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-8 rounded-lg max-w-md w-full">
-            <h2 className="text-2xl font-bold mb-4 text-center">Enter Your Name</h2>
-            <input
-              type="text"
-              value={playerName}
-              onChange={(e) => setPlayerName(e.target.value)}
-              className="border-2 border-gray-300 rounded-lg px-4 py-2 w-full mb-4 text-lg"
-              placeholder="Your Name"
-            />
-            <button
-              onClick={submitRanking}
-              className="w-full bg-green-500 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-green-600 transition duration-300"
-            >
-              Submit
-            </button>
+        )}
+        {showNameInput && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+            <div className="bg-white p-8 rounded-lg max-w-md w-full">
+              <h2 className="text-2xl font-bold mb-4 text-center">Enter Your Name</h2>
+              <input
+                type="text"
+                value={playerName}
+                onChange={(e) => setPlayerName(e.target.value)}
+                className="border-2 border-gray-300 rounded-lg px-4 py-2 w-full mb-4 text-lg"
+                placeholder="Your Name"
+              />
+              <button
+                onClick={submitRanking}
+                className="w-full bg-green-500 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-green-600 transition duration-300"
+              >
+                Submit
+              </button>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default Wordchain;
+        )}
+      </div>
+    );
+  };
+  
+  export default Wordchain;
