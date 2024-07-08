@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import './Wordchain.css';
 
 const wordChains = [
-  ["mountain", "climbing", "gear", "shift", "work"],
+  ["mountain", "top", "hat", "trick", "shot"],
   ["butterfly", "net", "worth", "while", "away"],
   ["telescope", "lens", "cap", "gun", "shot"],
   ["pineapple", "juice", "box", "office", "space"],
@@ -12,60 +12,53 @@ const wordChains = [
   ["submarine", "sandwich", "board", "game", "night"],
   ["sky", "light", "house", "warming", "up"],
   ["chocolate", "cake", "walk", "way", "finder"],
-  ["hurricane", "lamp", "shade", "tree", "house"],
   ["book", "store", "front", "door", "bell"],
   ["water", "fall", "back", "pack", "rat"],
   ["space", "ship", "wreck", "dive", "bomb"],
-  ["vine", "yard", "stick", "figure", "eight"],
   ["light", "bulb", "moment", "notice", "board"],
-  ["volcano", "ash", "tray", "table", "tennis"],
-  ["orchestra", "pit", "stop", "watch", "dog"],
-  ["lab", "coat", "hanger", "on", "time"],
   ["fish", "tank", "top", "hat", "trick"],
   ["air", "port", "wine", "glass", "house"],
   ["flower", "bed", "time", "machine", "learning"],
   ["book", "worm", "hole", "punch", "line"],
   ["art", "gallery", "wall", "paper", "clip"],
-  ["music", "festival", "grounds", "keeper", "sake"],
+  ["music", "box", "office", "chair", "lift"],
   ["emergency", "room", "service", "dog", "park"],
-  ["research", "paper", "weight", "loss", "prevention"],
   ["menu", "card", "game", "plan", "ahead"],
   ["stage", "door", "knob", "hill", "top"],
-  ["personal", "trainer", "car", "wash", "cloth"],
-  ["wild", "life", "boat", "ride", "sharing"],
+  ["wild", "life", "boat", "ride", "share"],
   ["moon", "light", "year", "book", "mark"],
   ["sun", "glasses", "case", "study", "group"],
   ["star", "fish", "bowl", "cut", "throat"],
   ["cloud", "nine", "lives", "stock", "market"],
   ["river", "bank", "account", "book", "end"],
   ["ocean", "wave", "length", "wise", "crack"],
-  ["mountain", "peak", "performance", "art", "class"],
-  ["desert", "storm", "cloud", "cover", "letter"],
-  ["forest", "ranger", "danger", "zone", "defense"],
-  ["beach", "ball", "game", "show", "time"],
   ["snow", "flake", "news", "paper", "boy"],
   ["ice", "cream", "cheese", "cake", "walk"],
   ["rock", "star", "dust", "bin", "liner"],
   ["fire", "place", "mat", "finish", "line"],
   ["wind", "mill", "stone", "cold", "shoulder"],
   ["earth", "quake", "proof", "read", "through"],
-  ["grass", "roots", "music", "box", "set"],
   ["tree", "trunk", "call", "girl", "friend"],
-  ["flower", "power", "nap", "time", "machine"],
   ["bird", "cage", "fight", "club", "sandwich"],
-  ["bee", "hive", "mind", "reader", "board"],
   ["bear", "hug", "bug", "spray", "paint"],
   ["lion", "heart", "beat", "box", "office"],
-  ["tiger", "eye", "lash", "back", "door"],
   ["wolf", "pack", "rat", "race", "track"],
   ["fox", "hole", "punch", "drunk", "dial"],
-  ["deer", "stand", "still", "life", "guard"],
-  ["rabbit", "foot", "note", "book", "worm"],
-  ["mouse", "trap", "door", "stop", "sign"]
+  ["deer", "stand", "still", "life", "guard"]
 ];
 
 const generateWordChain = () => {
-  return wordChains[Math.floor(Math.random() * wordChains.length)];
+  const validChain = wordChains[Math.floor(Math.random() * wordChains.length)];
+  
+  // Verify that all words in the chain are valid
+  const isValidChain = validChain.every(word => word.length > 1 && /^[a-zA-Z]+$/.test(word));
+  
+  if (isValidChain) {
+    return validChain;
+  } else {
+    // If the selected chain is invalid, try again
+    return generateWordChain();
+  }
 };
 
 const Wordchain = () => {
@@ -86,7 +79,7 @@ const Wordchain = () => {
 
   const initializeBoard = useCallback(() => {
     const newBoard = wordChain.map((word, rowIndex) => {
-      return Array(15).fill().map((_, colIndex) => {
+      return Array(10).fill().map((_, colIndex) => {
         if (colIndex === 0 || (rowIndex === 0 || rowIndex === wordChain.length - 1)) {
           return { letter: word[colIndex], status: 'revealed' };
         }
@@ -112,7 +105,6 @@ const Wordchain = () => {
 
   const checkWord = useCallback(() => {
     const enteredWord = board[currentRow].map(tile => tile.letter).join('').toLowerCase();
-    console.log('Checking word:', enteredWord, 'Correct word:', wordChain[currentRow]);
     if (enteredWord === wordChain[currentRow]) {
       setBoard(prevBoard => {
         const newBoard = [...prevBoard];
@@ -133,14 +125,12 @@ const Wordchain = () => {
         });
       } else {
         setGameEndTime(Date.now());
-        setTimeout(() => setShowModal(true), 2000);  // Show modal 2 seconds after winning
+        setTimeout(() => setShowModal(true), 2000);
       }
     } else {
       setIncorrectAttempts(prev => prev + 1);
       setAttemptsAfterLastHint(prev => prev + 1);
-      console.log('Incorrect attempt. Total:', incorrectAttempts + 1, 'After last hint:', attemptsAfterLastHint + 1);
       if (hintsPerRow[currentRow] >= 3) {
-        console.log('Triggering game over');
         revealWord();
       } else {
         setBoard(prevBoard => {
@@ -153,10 +143,9 @@ const Wordchain = () => {
         setCurrentCol(1);
       }
     }
-  }, [board, currentRow, wordChain, attemptsAfterLastHint, hintsPerRow, incorrectAttempts]);
+  }, [board, currentRow, wordChain, hintsPerRow]);
 
   const revealWord = useCallback(() => {
-    console.log('Revealing word');
     setBoard(prevBoard => {
       const newBoard = [...prevBoard];
       newBoard[currentRow] = newBoard[currentRow].map((tile, index) => {
@@ -169,7 +158,7 @@ const Wordchain = () => {
       return newBoard;
     });
     setGameOver(true);
-    setTimeout(() => setShowModal(true), 2000);  // Show modal 2 seconds after losing
+    setTimeout(() => setShowModal(true), 2000);
   }, [currentRow, wordChain]);
 
   const giveHint = useCallback(() => {
@@ -183,7 +172,7 @@ const Wordchain = () => {
         const hintCount = Math.min(hintsPerRow[currentRow] + 1, Math.ceil(emptyTiles.length * 0.33));
         
         let hintsGiven = 0;
-        for (let i = 1; i < 15 && hintsGiven < hintCount; i++) {
+        for (let i = 1; i < 10 && hintsGiven < hintCount; i++) {
           if (newBoard[currentRow][i].status === 'empty' || newBoard[currentRow][i].status === 'filled') {
             newBoard[currentRow][i] = { 
               letter: currentWord[i].toUpperCase(), 
@@ -208,7 +197,7 @@ const Wordchain = () => {
   const handleInputChange = useCallback((rowIndex, colIndex, value) => {
     if (rowIndex === currentRow && value.match(/^[a-zA-Z]$/)) {
       updateBoard(rowIndex, colIndex, value.toUpperCase());
-      if (colIndex < 14) {
+      if (colIndex < 9) {
         setCurrentCol(colIndex + 1);
         const nextInput = document.querySelector(`input[data-row="${rowIndex}"][data-col="${colIndex + 1}"]`);
         if (nextInput) {
@@ -292,7 +281,7 @@ const Wordchain = () => {
         <p className="text-sm">{new Date().toLocaleDateString()}</p>
       </div>
       <Link to="/rankings" className="absolute top-4 right-4 text-blue-500 hover:text-blue-700">Rankings</Link>
-      <div className="grid grid-cols-15 gap-1 mb-4 max-w-full w-full">
+      <div className="grid grid-cols-10 gap-1 mb-4 max-w-full w-full">
         {board.map((row, rowIndex) => (
           <React.Fragment key={rowIndex}>
             {row.map((tile, colIndex) => (
@@ -332,7 +321,7 @@ const Wordchain = () => {
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-8 rounded-lg max-w-md w-full">
-            <h2 className="text-3xl font-bold mb-6 text-center">{gameOver ? "Game Over" : "Amazing!"}</h2>
+          <h2 className="text-3xl font-bold mb-6 text-center">{gameOver ? "Game Over" : "Amazing!"}</h2>
             {!gameOver && (
               <>
                 <p className="text-xl mb-4 text-center">You solved the Wordchain in {Math.floor((gameEndTime - gameStartTime) / 1000)} seconds</p>
@@ -350,54 +339,54 @@ const Wordchain = () => {
                       setShowModal(false);
                     }}
                     className="bg-black text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-gray-800 transition duration-300"
-                    >
-                      Share Your Results With Your Favorite Person
-                    </button>
-                    <button
-                      onClick={startNewGame}
-                      className="bg-blue-500 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-blue-600 transition duration-300"
-                    >
-                      Start New Game
-                    </button>
-                  </div>
-                </>
-              )}
-              {gameOver && (
-                <>
-                  <p className="text-xl mb-6 text-center">You didn't guess the word. Would you like to try again?</p>
+                  >
+                    Share Your Results With Your Favorite Person
+                  </button>
                   <button
                     onClick={startNewGame}
-                    className="w-full bg-blue-500 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-blue-600 transition duration-300"
+                    className="bg-blue-500 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-blue-600 transition duration-300"
                   >
                     Start New Game
                   </button>
-                </>
-              )}
-            </div>
+                </div>
+              </>
+            )}
+            {gameOver && (
+              <>
+                <p className="text-xl mb-6 text-center">You didn't guess the word. Would you like to try again?</p>
+                <button
+                  onClick={startNewGame}
+                  className="w-full bg-blue-500 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-blue-600 transition duration-300"
+                >
+                  Start New Game
+                </button>
+              </>
+            )}
           </div>
-        )}
-        {showNameInput && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-            <div className="bg-white p-8 rounded-lg max-w-md w-full">
-              <h2 className="text-2xl font-bold mb-4 text-center">Enter Your Name</h2>
-              <input
-                type="text"
-                value={playerName}
-                onChange={(e) => setPlayerName(e.target.value)}
-                className="border-2 border-gray-300 rounded-lg px-4 py-2 w-full mb-4 text-lg"
-                placeholder="Your Name"
-              />
-              <button
-                onClick={submitRanking}
-                className="w-full bg-green-500 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-green-600 transition duration-300"
-              >
-                Submit
-              </button>
-            </div>
+        </div>
+      )}
+      {showNameInput && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-8 rounded-lg max-w-md w-full">
+            <h2 className="text-2xl font-bold mb-4 text-center">Enter Your Name</h2>
+            <input
+              type="text"
+              value={playerName}
+              onChange={(e) => setPlayerName(e.target.value)}
+              className="border-2 border-gray-300 rounded-lg px-4 py-2 w-full mb-4 text-lg"
+              placeholder="Your Name"
+            />
+            <button
+              onClick={submitRanking}
+              className="w-full bg-green-500 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-green-600 transition duration-300"
+            >
+              Submit
+            </button>
           </div>
-        )}
-      </div>
-    );
-  };
-  
-  export default Wordchain;
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Wordchain;
