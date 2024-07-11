@@ -71,7 +71,7 @@ const generateWordChain = () => {
 const Wordchain = () => {
   const [wordChain, setWordChain] = useState(generateWordChain());
   const [board, setBoard] = useState([]);
-  const [currentRow, setCurrentRow] = useState(1);
+  const [currentRow, setCurrentRow] = useState(null);
   const [currentCol, setCurrentCol] = useState(1);
   const [hintCount, setHintCount] = useState(0);
   const [incorrectAttempts, setIncorrectAttempts] = useState(0);
@@ -87,10 +87,10 @@ const Wordchain = () => {
   const initializeBoard = useCallback(() => {
     const newBoard = wordChain.map((word, rowIndex) => {
       return Array(15).fill().map((_, colIndex) => {
-        if (colIndex === 0 || (rowIndex === 0 || rowIndex === wordChain.length - 1)) {
-          return { letter: word[colIndex], status: 'revealed' };
+        if (colIndex === 0 || rowIndex === 0 || rowIndex === wordChain.length - 1) {
+          return { letter: word[colIndex] || '', status: 'revealed', permanent: true };
         }
-        return { letter: '', status: 'empty' };
+        return { letter: '', status: 'empty', permanent: false };
       });
     });
     setBoard(newBoard);
@@ -104,90 +104,97 @@ const Wordchain = () => {
   const updateBoard = useCallback((row, col, letter) => {
     setBoard(prevBoard => {
       const newBoard = [...prevBoard];
-      newBoard[row] = [...newBoard[row]];
-      newBoard[row][col] = { letter, status: 'filled' };
+      if (!newBoard[row][col].permanent) {
+        newBoard[row] = [...newBoard[row]];
+        newBoard[row][col] = { ...newBoard[row][col], letter, status: 'filled' };
+      }
       return newBoard;
     });
   }, []);
 
   const checkWord = useCallback(() => {
+    if (currentRow === null) return;
+    
     const enteredWord = board[currentRow].map(tile => tile.letter).join('').toLowerCase();
-    console.log('Checking word:', enteredWord, 'Correct word:', wordChain[currentRow]);
-    if (enteredWord === wordChain[currentRow]) {
+    const correctWord = wordChain[currentRow] || '';
+    if (enteredWord === correctWord) {
       setBoard(prevBoard => {
         const newBoard = [...prevBoard];
         newBoard[currentRow] = newBoard[currentRow].map((tile, index) => 
-          index < enteredWord.length ? { letter: enteredWord[index].toUpperCase(), status: 'correct' } : { letter: '', status: 'solid' }
+          index < enteredWord.length ? { ...tile, letter: enteredWord[index].toUpperCase(), status: 'correct', permanent: true } : { ...tile, letter: '', status: 'solid', permanent: true }
         );
         return newBoard;
       });
-      if (currentRow < wordChain.length - 1) {
-        setCurrentRow(prev => prev + 1);
-        setCurrentCol(1);
-        setIncorrectAttempts(0);
-        setAttemptsAfterLastHint(0);
-        setHintsPerRow(prev => {
-          const newHints = [...prev];
-          newHints[currentRow] = 0;
-          return newHints;
-        });
-      } else {
+      setCurrentRow(null);
+      setCurrentCol(1);
+      setIncorrectAttempts(0);
+      setAttemptsAfterLastHint(0);
+      setHintsPerRow(prev => {
+        const newHints = [...prev];
+        newHints[currentRow] = 0;
+        return newHints;
+      });
+
+      if (board.every((row, index) => index === 0 || index === board.length - 1 || row.every(tile => tile.status === 'correct' || tile.status === 'solid'))) {
         setGameEndTime(Date.now());
-        setTimeout(() => setShowModal(true), 2000);  // Show modal 2 seconds after winning
+        setTimeout(() => setShowModal(true), 2000);
       }
     } else {
       setIncorrectAttempts(prev => prev + 1);
       setAttemptsAfterLastHint(prev => prev + 1);
-      console.log('Incorrect attempt. Total:', incorrectAttempts + 1, 'After last hint:', attemptsAfterLastHint + 1);
       if (hintsPerRow[currentRow] >= 3) {
-        console.log('Triggering game over');
         revealWord();
       } else {
         setBoard(prevBoard => {
           const newBoard = [...prevBoard];
           newBoard[currentRow] = newBoard[currentRow].map((tile, index) => 
-            index === 0 ? tile : { letter: '', status: 'empty' }
+            tile.permanent ? tile : { ...tile, letter: '', status: 'empty' }
           );
           return newBoard;
         });
         setCurrentCol(1);
       }
     }
-  }, [board, currentRow, wordChain, attemptsAfterLastHint, hintsPerRow, incorrectAttempts]);
+  }, [board, currentRow, wordChain, hintsPerRow]);
 
   const revealWord = useCallback(() => {
-    console.log('Revealing word');
+    if (currentRow === null) return;
+    
     setBoard(prevBoard => {
       const newBoard = [...prevBoard];
       newBoard[currentRow] = newBoard[currentRow].map((tile, index) => {
         const letter = wordChain[currentRow] && wordChain[currentRow][index];
         return {
           letter: letter ? letter.toUpperCase() : '',
-          status: 'incorrect'
+          status: 'incorrect',
+          permanent: true
         };
       });
       return newBoard;
     });
     setGameOver(true);
-    setTimeout(() => setShowModal(true), 2000);  // Show modal 2 seconds after losing
+    setTimeout(() => setShowModal(true), 2000);
   }, [currentRow, wordChain]);
 
   const giveHint = useCallback(() => {
+    if (currentRow === null) return;
+    
     if (incorrectAttempts >= 3) {
       setBoard(prevBoard => {
         const newBoard = [...prevBoard];
-        const currentWord = wordChain[currentRow];
+        const currentWord = wordChain[currentRow] || '';
         const emptyTiles = newBoard[currentRow].filter((tile, index) => 
-          index > 0 && (tile.status === 'empty' || tile.status === 'filled')
+          index > 0 && !tile.permanent && (tile.status === 'empty' || tile.status === 'filled')
         );
         const hintCount = Math.min(hintsPerRow[currentRow] + 1, Math.ceil(emptyTiles.length * 0.33));
         
         let hintsGiven = 0;
         for (let i = 1; i < 15 && hintsGiven < hintCount; i++) {
-          if (newBoard[currentRow][i].status === 'empty' || newBoard[currentRow][i].status === 'filled') {
+          if (!newBoard[currentRow][i].permanent && (newBoard[currentRow][i].status === 'empty' || newBoard[currentRow][i].status === 'filled')) {
             newBoard[currentRow][i] = { 
-              letter: currentWord[i].toUpperCase(), 
-              status: 'hint' 
+              letter: (currentWord[i] || '').toUpperCase(), 
+              status: 'hint',
+              permanent: true
             };
             hintsGiven++;
           }
@@ -206,8 +213,9 @@ const Wordchain = () => {
   }, [incorrectAttempts, currentRow, wordChain, hintsPerRow]);
 
   const handleInputChange = useCallback((rowIndex, colIndex, value) => {
-    if (rowIndex === currentRow && value.match(/^[a-zA-Z]$/)) {
+    if (!board[rowIndex][colIndex].permanent && value.match(/^[a-zA-Z]$/)) {
       updateBoard(rowIndex, colIndex, value.toUpperCase());
+      setCurrentRow(rowIndex);
       if (colIndex < 14) {
         setCurrentCol(colIndex + 1);
         const nextInput = document.querySelector(`input[data-row="${rowIndex}"][data-col="${colIndex + 1}"]`);
@@ -216,12 +224,12 @@ const Wordchain = () => {
         }
       }
     }
-  }, [currentRow, updateBoard]);
+  }, [board, updateBoard]);
 
   const handleKeyDown = useCallback((e, rowIndex, colIndex) => {
     if (e.key === 'Enter') {
       checkWord();
-    } else if (e.key === 'Backspace' && colIndex > 0 && !e.target.value) {
+    } else if (e.key === 'Backspace' && colIndex > 0 && !board[rowIndex][colIndex - 1].permanent) {
       e.preventDefault();
       updateBoard(rowIndex, colIndex - 1, '');
       setCurrentCol(colIndex - 1);
@@ -230,13 +238,12 @@ const Wordchain = () => {
         prevInput.focus();
       }
     }
-  }, [checkWord, updateBoard]);
+  }, [checkWord, updateBoard, board]);
 
   const handleFocus = useCallback((rowIndex, colIndex) => {
-    if (rowIndex === currentRow) {
-      setCurrentCol(colIndex);
-    }
-  }, [currentRow]);
+    setCurrentRow(rowIndex);
+    setCurrentCol(colIndex);
+  }, []);
 
   const shareResults = useCallback(() => {
     const timeTaken = Math.floor((gameEndTime - gameStartTime) / 1000);
@@ -254,7 +261,7 @@ const Wordchain = () => {
   const startNewGame = useCallback(() => {
     setWordChain(generateWordChain());
     setBoard([]);
-    setCurrentRow(1);
+    setCurrentRow(null);
     setCurrentCol(1);
     setHintCount(0);
     setIncorrectAttempts(0);
@@ -301,7 +308,7 @@ const Wordchain = () => {
                 type="text"
                 maxLength="1"
                 value={tile.letter}
-                readOnly={tile.status !== 'empty' && tile.status !== 'filled'}
+                readOnly={tile.permanent}
                 className={`wordchain-input ${
                   tile.status === 'revealed' ? 'bg-blue-200' :
                   tile.status === 'correct' ? 'bg-green-300' :
@@ -323,9 +330,14 @@ const Wordchain = () => {
       <button
         onClick={giveHint}
         disabled={incorrectAttempts < 3 || gameOver}
-        className={`mt-4 px-8 py-2 rounded-full text-lg font-semibold ${
-          incorrectAttempts >= 3 && !gameOver ? 'bg-gray-500 text-white' : 'bg-white border-2 border-black text-black'
+        className={`mt-4 px-8 py-2 rounded-full text-lg font-semibold transition-all duration-300 ${
+          incorrectAttempts >= 3 && !gameOver 
+            ? 'bg-gray-500 text-white' 
+            : 'bg-white border-2 border-black text-black'
         }`}
+        style={{
+          backgroundImage: `linear-gradient(to right, #9CA3AF ${(incorrectAttempts / 3) * 100}%, transparent ${(incorrectAttempts / 3) * 100}%)`,
+        }}
       >
         Hint
       </button>
@@ -350,54 +362,54 @@ const Wordchain = () => {
                       setShowModal(false);
                     }}
                     className="bg-black text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-gray-800 transition duration-300"
-                    >
-                      Share Your Results With Your Favorite Person
-                    </button>
-                    <button
-                      onClick={startNewGame}
-                      className="bg-blue-500 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-blue-600 transition duration-300"
-                    >
-                      Start New Game
-                    </button>
-                  </div>
-                </>
-              )}
-              {gameOver && (
-                <>
-                  <p className="text-xl mb-6 text-center">You didn't guess the word. Would you like to try again?</p>
+                  >
+                    Share Your Results With Your Favorite Person
+                  </button>
                   <button
                     onClick={startNewGame}
-                    className="w-full bg-blue-500 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-blue-600 transition duration-300"
+                    className="bg-blue-500 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-blue-600 transition duration-300"
                   >
                     Start New Game
                   </button>
-                </>
-              )}
-            </div>
+                </div>
+              </>
+            )}
+            {gameOver && (
+              <>
+                <p className="text-xl mb-6 text-center">You didn't guess the word. Would you like to try again?</p>
+                <button
+                  onClick={startNewGame}
+                  className="w-full bg-blue-500 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-blue-600 transition duration-300"
+                >
+                  Start New Game
+                </button>
+              </>
+            )}
           </div>
-        )}
-        {showNameInput && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-            <div className="bg-white p-8 rounded-lg max-w-md w-full">
-              <h2 className="text-2xl font-bold mb-4 text-center">Enter Your Name</h2>
-              <input
-                type="text"
-                value={playerName}
-                onChange={(e) => setPlayerName(e.target.value)}
-                className="border-2 border-gray-300 rounded-lg px-4 py-2 w-full mb-4 text-lg"
-                placeholder="Your Name"
-              />
-              <button
-                onClick={submitRanking}
-                className="w-full bg-green-500 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-green-600 transition duration-300"
-              >
-                Submit
-              </button>
-            </div>
+        </div>
+      )}
+      {showNameInput && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-8 rounded-lg max-w-md w-full">
+            <h2 className="text-2xl font-bold mb-4 text-center">Enter Your Name</h2>
+            <input
+              type="text"
+              value={playerName}
+              onChange={(e) => setPlayerName(e.target.value)}
+              className="border-2 border-gray-300 rounded-lg px-4 py-2 w-full mb-4 text-lg"
+              placeholder="Your Name"
+            />
+            <button
+              onClick={submitRanking}
+              className="w-full bg-green-500 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-green-600 transition duration-300"
+            >
+              Submit
+            </button>
           </div>
-        )}
-      </div>
-    );
-  };
-  
-  export default Wordchain;
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Wordchain;
