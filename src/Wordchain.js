@@ -104,7 +104,7 @@ const Wordchain = () => {
   const updateBoard = useCallback((row, col, letter) => {
     setBoard(prevBoard => {
       const newBoard = [...prevBoard];
-      if (!newBoard[row][col].permanent) {
+      if (newBoard[row] && newBoard[row][col] && !newBoard[row][col].permanent) {
         newBoard[row] = [...newBoard[row]];
         newBoard[row][col] = { ...newBoard[row][col], letter, status: 'filled' };
       }
@@ -113,10 +113,10 @@ const Wordchain = () => {
   }, []);
 
   const checkWord = useCallback(() => {
-    if (currentRow === null) return;
+    if (currentRow === null || !wordChain[currentRow]) return;
     
     const enteredWord = board[currentRow].map(tile => tile.letter).join('').toLowerCase();
-    const correctWord = wordChain[currentRow] || '';
+    const correctWord = wordChain[currentRow].toLowerCase();
     if (enteredWord === correctWord) {
       setBoard(prevBoard => {
         const newBoard = [...prevBoard];
@@ -125,19 +125,33 @@ const Wordchain = () => {
         );
         return newBoard;
       });
-      setCurrentRow(null);
-      setCurrentCol(1);
-      setIncorrectAttempts(0);
-      setAttemptsAfterLastHint(0);
-      setHintsPerRow(prev => {
-        const newHints = [...prev];
-        newHints[currentRow] = 0;
-        return newHints;
-      });
-
-      if (board.every((row, index) => index === 0 || index === board.length - 1 || row.every(tile => tile.status === 'correct' || tile.status === 'solid'))) {
+      
+      if (currentRow === 3) {
+        // If the fourth row is correct, automatically complete the game
+        setBoard(prevBoard => {
+          const newBoard = [...prevBoard];
+          if (newBoard[4] && wordChain[4]) {
+            newBoard[4] = newBoard[4].map((tile, index) => ({
+              ...tile,
+              letter: (wordChain[4][index] || '').toUpperCase(),
+              status: 'correct',
+              permanent: true
+            }));
+          }
+          return newBoard;
+        });
         setGameEndTime(Date.now());
         setTimeout(() => setShowModal(true), 2000);
+      } else {
+        setCurrentRow(null);
+        setCurrentCol(1);
+        setIncorrectAttempts(0);
+        setAttemptsAfterLastHint(0);
+        setHintsPerRow(prev => {
+          const newHints = [...prev];
+          newHints[currentRow] = 0;
+          return newHints;
+        });
       }
     } else {
       setIncorrectAttempts(prev => prev + 1);
@@ -158,7 +172,7 @@ const Wordchain = () => {
   }, [board, currentRow, wordChain, hintsPerRow]);
 
   const revealWord = useCallback(() => {
-    if (currentRow === null) return;
+    if (currentRow === null || !wordChain[currentRow]) return;
     
     setBoard(prevBoard => {
       const newBoard = [...prevBoard];
@@ -177,7 +191,7 @@ const Wordchain = () => {
   }, [currentRow, wordChain]);
 
   const giveHint = useCallback(() => {
-    if (currentRow === null) return;
+    if (currentRow === null || !wordChain[currentRow]) return;
     
     if (incorrectAttempts >= 3) {
       setBoard(prevBoard => {
@@ -213,7 +227,7 @@ const Wordchain = () => {
   }, [incorrectAttempts, currentRow, wordChain, hintsPerRow]);
 
   const handleInputChange = useCallback((rowIndex, colIndex, value) => {
-    if (!board[rowIndex][colIndex].permanent && value.match(/^[a-zA-Z]$/)) {
+    if (board[rowIndex] && board[rowIndex][colIndex] && !board[rowIndex][colIndex].permanent && value.match(/^[a-zA-Z]$/)) {
       updateBoard(rowIndex, colIndex, value.toUpperCase());
       setCurrentRow(rowIndex);
       if (colIndex < 14) {
@@ -229,7 +243,7 @@ const Wordchain = () => {
   const handleKeyDown = useCallback((e, rowIndex, colIndex) => {
     if (e.key === 'Enter') {
       checkWord();
-    } else if (e.key === 'Backspace' && colIndex > 0 && !board[rowIndex][colIndex - 1].permanent) {
+    } else if (e.key === 'Backspace' && colIndex > 0 && board[rowIndex] && board[rowIndex][colIndex - 1] && !board[rowIndex][colIndex - 1].permanent) {
       e.preventDefault();
       updateBoard(rowIndex, colIndex - 1, '');
       setCurrentCol(colIndex - 1);
