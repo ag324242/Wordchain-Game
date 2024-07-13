@@ -197,22 +197,25 @@ const Wordchain = () => {
       setBoard(prevBoard => {
         const newBoard = [...prevBoard];
         const currentWord = wordChain[currentRow] || '';
-        const emptyTiles = newBoard[currentRow].filter((tile, index) => 
+        
+        // Find the first empty or filled (non-permanent) tile
+        const hintIndex = newBoard[currentRow].findIndex((tile, index) => 
           index > 0 && !tile.permanent && (tile.status === 'empty' || tile.status === 'filled')
         );
-        const hintCount = Math.min(hintsPerRow[currentRow] + 1, Math.ceil(emptyTiles.length * 0.33));
         
-        let hintsGiven = 0;
-        for (let i = 1; i < 15 && hintsGiven < hintCount; i++) {
-          if (!newBoard[currentRow][i].permanent && (newBoard[currentRow][i].status === 'empty' || newBoard[currentRow][i].status === 'filled')) {
-            newBoard[currentRow][i] = { 
-              letter: (currentWord[i] || '').toUpperCase(), 
-              status: 'hint',
-              permanent: true
-            };
-            hintsGiven++;
-          }
+        if (hintIndex !== -1 && hintIndex < currentWord.length) {
+          newBoard[currentRow] = newBoard[currentRow].map((tile, index) => {
+            if (index === hintIndex) {
+              return { 
+                letter: currentWord[index].toUpperCase(), 
+                status: 'hint',
+                permanent: true
+              };
+            }
+            return tile;
+          });
         }
+        
         return newBoard;
       });
       setHintCount(prev => prev + 1);
@@ -224,7 +227,7 @@ const Wordchain = () => {
       setIncorrectAttempts(0);
       setAttemptsAfterLastHint(0);
     }
-  }, [incorrectAttempts, currentRow, wordChain, hintsPerRow]);
+  }, [incorrectAttempts, currentRow, wordChain]);
 
   const handleInputChange = useCallback((rowIndex, colIndex, value) => {
     if (board[rowIndex] && board[rowIndex][colIndex] && !board[rowIndex][colIndex].permanent && value.match(/^[a-zA-Z]$/)) {
